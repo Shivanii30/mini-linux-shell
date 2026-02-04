@@ -6,4 +6,6 @@ class Shell {
         void run();
 };
 
+void handle_sigint(int sig);
+
 #endif 
