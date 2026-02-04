@@ -6,10 +6,19 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <cstring>
+#include <csignal>
 
 using namespace std;
 
+void handle_sigint(int sig){
+    (void)sig;
+    cout << endl;
+}
+
 void Shell::run(){
+
+    signal(SIGINT, handle_sigint);
+
     std::string input;
 
     while(true){
@@ -64,6 +73,8 @@ void Shell::run(){
         }
         else if(pid == 0){
 
+            signal(SIGINT, SIG_DFL);
+
             //Child process
 
             execvp(args[0], args.data());
@@ -73,6 +84,7 @@ void Shell::run(){
         else{
             //parent process
             wait(nullptr);
+            signal(SIGINT, handle_sigint);
         }
     }
 
