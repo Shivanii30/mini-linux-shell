@@ -20,7 +20,7 @@ void Shell::run(){
     signal(SIGINT, handle_sigint);
 
     std::string input;
-
+    
     while(true){
         cout << "mini-shell> ";
 
@@ -30,9 +30,13 @@ void Shell::run(){
             continue;
         }
 
+        last_command = input;
+
+
         //Exit command
         if(input == "exit"){
             cout <<" Exiting mini-shell." << endl;
+            last_exit_code = 0;
             break;
         }
 
@@ -42,9 +46,13 @@ void Shell::run(){
 
             if(path.empty()){
                 cerr << "cd : missing argument\n";
+                last_exit_code = 1;
             }
             else if(chdir(path.c_str()) != 0){
                 perror("cd failed");
+                last_exit_code = 1;
+            } else {
+                last_exit_code = 0;
             }
             continue;
         }
@@ -83,9 +91,26 @@ void Shell::run(){
         }
         else{
             //parent process
-            wait(nullptr);
+            int status;
+            waitpid(pid, &status, 0);
             signal(SIGINT, handle_sigint);
+
+            if (WIFEXITED(status)){
+                last_exit_code = WEXITSTATUS(status);
+            } else {
+                last_exit_code = -1;
+            }
         }
     }
 
+}
+
+// ====MCP getters (context exposure) ==== 
+
+string Shell ::get_last_command() const {
+    return last_command;
+}
+
+int Shell ::get_last_exit_code() const {
+    return last_exit_code;
 }
